@@ -2,10 +2,10 @@
   <div v-if="ui" class="relative">
     <div class="flex justify-between">
       <div>
-        <el-button type="primary" :icon="state.status === 'init' ? 'el-icon-milk-tea': 'el-icon-refresh-right'" class="focus:outline-none" :disabled="!allowClick()" plain size="small" @click="fetchData()" :loading="state.status === 'loading'">{{state.status === 'init' ? ui.button.load: ui.button.update}}</el-button>
-        <el-button icon="el-icon-folder-opened" @click="saveExcel" class="focus:outline-none" :disabled="!gachaData" size="small" type="success" plain>{{ui.button.excel}}</el-button>
+        <el-button type="primary" :icon="state.status === 'init' ? 'el-icon-milk-tea': 'el-icon-refresh-right'" :disabled="!allowClick()" plain size="small" @click="fetchData()" :loading="state.status === 'loading'">{{state.status === 'init' ? ui.button.load: ui.button.update}}</el-button>
+        <el-button icon="el-icon-folder-opened" @click="saveExcel" :disabled="!gachaData" size="small" type="success" plain>{{ui.button.excel}}</el-button>
         <el-tooltip v-if="detail && state.status !== 'loading'" :content="ui.hint.newAccount" placement="bottom">
-          <el-button @click="newUser()" plain icon="el-icon-plus" size="small" class="focus:outline-none"></el-button>
+          <el-button @click="newUser()" plain icon="el-icon-plus" size="small"></el-button>
         </el-tooltip>
       </div>
       <div class="flex gap-2">
@@ -18,7 +18,7 @@
           </el-option>
         </el-select>
         <el-dropdown @command="optionCommand" size="small">
-          <el-button @click="showSetting(true)" class="focus:outline-none" plain type="info" icon="el-icon-more" size="small">{{ui.button.option}}</el-button>
+          <el-button @click="showSetting(true)" plain type="info" icon="el-icon-more" size="small">{{ui.button.option}}</el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="setting" icon="el-icon-setting">{{ui.button.setting}}</el-dropdown-item>
@@ -30,6 +30,9 @@
       </div>
     </div>
     <p class="text-gray-400 my-2 text-xs">{{hint}}</p>
+    <div class="">
+      <el-button size="mini" type="text" icon="el-icon-plus">选择卡池</el-button>
+    </div>
     <div v-if="detail" class="gap-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-4">
       <div class="mb-4" v-for="(item, i) of detail" :key="i">
         <p class="text-center text-gray-600 my-2">{{typeMap.get(item[0])}}</p>
@@ -44,8 +47,8 @@
       <el-input size="small" type="textarea" :autosize="{minRows: 4}" :placeholder="ui.urlDialog.placeholder" v-model="state.urlInput" spellcheck="false"></el-input>
       <template #footer>
         <span class="dialog-footer">
-          <el-button size="small" @click="state.showUrlDlg = false" class="focus:outline-none">{{ui.common.cancel}}</el-button>
-          <el-button size="small" type="primary" @click="state.showUrlDlg = false, fetchData(state.urlInput)" class="focus:outline-none">{{ui.common.ok}}</el-button>
+          <el-button size="small" @click="state.showUrlDlg = false">{{ui.common.cancel}}</el-button>
+          <el-button size="small" type="primary" @click="state.showUrlDlg = false, fetchData(state.urlInput)">{{ui.common.ok}}</el-button>
         </span>
       </template>
     </el-dialog>
@@ -61,6 +64,7 @@ import GachaDetail from './components/GachaDetail.vue'
 import Setting from './components/Setting.vue'
 import gachaDetail from './gachaDetail'
 import { version } from '../../package.json'
+import wishInfo from '../wish-info.json'
 
 const state = reactive({
   status: 'init',
@@ -71,7 +75,8 @@ const state = reactive({
   showSetting: false,
   i18n: null,
   showUrlDlg: false,
-  urlInput: ''
+  urlInput: '',
+  wishInfo: wishInfo
 })
 
 const ui = computed(() => {
@@ -210,6 +215,17 @@ const setTitle = () => {
   document.title = `${state.i18n.ui.win.title} - v${version}`
 }
 
+const updateWishInfo =  async () => {
+  const url = 'https://genshin-gacha-export.danmu9.com/update'
+  const res = await fetch(`${url}/manifest.json?t=${Math.floor(Date.now() / (1000 * 60 * 10))}`)
+  const data = await res.json()
+  if (data.wish) {
+    state.wishInfo = data.wish
+  }
+}
+
+updateWishInfo()
+
 onMounted(async () => {
   await readData()
   await getI18nData()
@@ -228,3 +244,9 @@ onMounted(async () => {
   })
 })
 </script>
+
+<style>
+.el-button:focus {
+  outline: 0;
+}
+</style>

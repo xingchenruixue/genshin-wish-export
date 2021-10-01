@@ -3,6 +3,7 @@ const path = require('path')
 const crypto = require('crypto')
 const AdmZip = require('adm-zip')
 const { version } = require('../package.json')
+const wishInfo = require('./src/wish-info.json')
 
 const hash = (data, type = 'sha256') => {
   const hmac = crypto.createHmac(type, 'hk4e')
@@ -37,7 +38,8 @@ const start = async () => {
     version,
     from: '0.1.5',
     name: `${hashName}.zip`,
-    hash: sha256
+    hash: sha256,
+    wish: wishInfo
   })
   copyHTML()
 }
